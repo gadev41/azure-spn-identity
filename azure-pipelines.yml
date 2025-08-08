@@ -1,0 +1,32 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  resourceGroupName: 'demo-rg'
+  location: 'eastus'
+  templateFile: 'templates/azuredeploy.json'
+  parametersFile: 'templates/azuredeploy.parameters.json'
+
+stages:
+- stage: DeployStorage
+  displayName: 'ARM Deployment via SPN'
+  jobs:
+  - job: Deploy
+    displayName: 'Deploy ARM Template'
+    steps:
+    - task: AzureResourceManagerTemplateDeployment@3
+      displayName: 'Deploy Storage Account'
+      inputs:
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: 'azure-spn-connection' # <-- SPN service connection
+        subscriptionId: '<your-subscription-id>'
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: '$(resourceGroupName)'
+        location: '$(location)'
+        templateLocation: 'Linked artifact'
+        csmFile: '$(templateFile)'
+        csmParametersFile: '$(parametersFile)'
+        deploymentMode: 'Incremental'
